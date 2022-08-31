@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hahn <hahn@student.42seoul.kr>             +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/08/31 12:50:57 by hahn              #+#    #+#             */
+/*   Updated: 2022/08/31 12:50:57 by hahn             ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
 int	info_init(char **argv, t_info *info)
@@ -17,7 +29,7 @@ int	info_init(char **argv, t_info *info)
 	info -> end = 0;
 	if (info -> philo == -1 || info -> die == -1 || info -> eat == -1 \
 		|| info -> sleep == -1 || (argv[5] != NULL && info -> must < 1))
-			return (1);
+		return (1);
 	return (0);
 }
 

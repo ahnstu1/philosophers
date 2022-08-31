@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hahn <hahn@student.42seoul.kr>             +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/08/31 12:49:53 by hahn              #+#    #+#             */
+/*   Updated: 2022/08/31 12:49:53 by hahn             ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
 int	philo_ate(t_info *info, t_philo *philo)
@@ -30,7 +42,7 @@ void	philo_die(t_info *info, t_philo *philo)
 			{
 				philo_print(&philo[idx], "died");
 				info -> end = 1;
-				break;
+				break ;
 			}
 			idx++;
 		}
@@ -44,7 +56,7 @@ int	philo_act(t_info *info, t_philo *philo)
 	mutex = philo -> mutex;
 	pthread_mutex_lock(&(mutex -> fork[philo -> left]));
 	philo_print(philo, "has taken a fork");
-	if (info -> philo != 1)
+	if (info -> philo != 1 && !info -> end)
 	{
 		pthread_mutex_lock(&(mutex -> fork[philo -> right]));
 		philo_print(philo, "has taken a fork");
@@ -55,9 +67,9 @@ int	philo_act(t_info *info, t_philo *philo)
 		pthread_mutex_unlock(&(mutex -> fork[philo -> right]));
 	}
 	pthread_mutex_unlock(&(mutex -> fork[philo -> left]));
-	if (philo_ate(info, philo))
+	if (philo_ate(info, philo) || info -> end)
 		return (1);
-	philo_print(philo, "is sleeping");		
+	philo_print(philo, "is sleeping");
 	philo_usleep(philo, 0);
 	philo_print(philo, "is thinking");
 	return (0);
@@ -72,30 +84,12 @@ void	*philo_rot(void	*philo)
 	info = tmp -> info;
 	if (tmp -> id % 2)
 		usleep(1000);
-	while (!(info -> end))
+	while (!info -> end)
 	{
 		if (philo_act(info, philo))
-			break;
-	} 
-}
-
-void philo_free(t_philo *philo, int count)
-{
-	int	idx;
-	t_mutex	*mutex;
-	t_info	*info;
-
-	idx = 0;
-	mutex = philo[0].mutex;
-	info = philo[0].info;
-	pthread_mutex_destroy(&mutex -> printing);
-	pthread_mutex_destroy(&mutex -> eating);
-	while (idx < info -> philo)
-		pthread_mutex_destroy(&(mutex -> fork[idx++]));
-	idx = 0;
-	while (idx < count)
-		pthread_join(philo[idx++].tid, NULL);
-	free(philo);
+			break ;
+	}
+	return (0);
 }
 
 int	philo_main(t_info *info, t_philo *philo, t_mutex *mutex)
@@ -107,7 +101,7 @@ int	philo_main(t_info *info, t_philo *philo, t_mutex *mutex)
 	{
 		philo[idx].timestamp = current_time();
 		if (pthread_create(&(philo[idx].tid), NULL, philo_rot, &(philo[idx])))
-			return(1);
+			return (1);
 		idx++;
 	}
 	philo_die(info, philo);

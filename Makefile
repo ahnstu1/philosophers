@@ -9,7 +9,7 @@ OBJS = main.o \
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	cc $(OBJS) -o $(NAME) -g -fsanitize=address
+	cc $(OBJS) -o $(NAME)
 
 clean:
 	rm -f $(OBJS)
