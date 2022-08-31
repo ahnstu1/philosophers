@@ -16,6 +16,7 @@
 # include <stdlib.h>
 # include <pthread.h>
 # include <unistd.h>
+# include <string.h>
 # include <sys/time.h>
 
 typedef struct s_info
@@ -30,8 +31,8 @@ typedef struct s_info
 	int			*fork_state;
 	long long	timestamp;
 	pthread_mutex_t	printing;
-	pthread_mutex_t	eating;
-	pthread_mutex_t	die_check;
+	pthread_mutex_t	end_check;
+	pthread_mutex_t	*share;
 }	t_info;
 
 typedef struct s_philo
@@ -45,13 +46,14 @@ typedef struct s_philo
 	int				left;
 	int				right;
 	pthread_t		tid;
-	pthread_mutex_t	left_hand;
-	pthread_mutex_t	right_hand;
+	pthread_mutex_t	*left_hand;
+	pthread_mutex_t	*right_hand;
 	struct s_philo	*first_philo;
 	struct s_info	*info;
 }	t_philo;
 
 int			info_init(char **argv, t_info *info);
+int	end_check(t_philo *philo);
 int			mutex_init(t_info *info);
 int			philo_init(t_info *info, t_philo **philo);
 int			philo_main(t_info *info, t_philo *philo);

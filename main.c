@@ -19,17 +19,12 @@ void	philo_free(t_philo *philo, int count)
 
 	idx = 0;
 	info = philo[0].info;
-	pthread_mutex_destroy(&philo -> info -> printing);
-	pthread_mutex_destroy(&philo -> info -> eating);
-	while (idx < philo -> count_eat)
-	{
-		pthread_mutex_destroy(&philo[idx].left_hand);
-		pthread_mutex_destroy(&philo[idx].right_hand);
-		idx++;
-	}
-	idx = 0;
 	while (idx < count)
 		pthread_join(philo[idx++].tid, NULL);
+	pthread_mutex_destroy(&philo -> info -> printing);
+	pthread_mutex_destroy(&philo -> info -> end_check);
+	pthread_mutex_destroy(info -> share);
+	free(info -> fork_state);
 	free(philo);
 }
 

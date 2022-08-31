@@ -48,13 +48,17 @@ void	philo_print(t_philo *philo, char *msg)
 {
 	t_info		*info;
 	int			id;
+	int			state;
 	long long	timestamp;
 
 	info = philo -> info;
 	id = philo -> id + 1;
 	pthread_mutex_lock(&philo -> info -> printing);
 	timestamp = current_time() - info -> timestamp;
-	if (!info -> end)
+	pthread_mutex_lock(&philo -> info -> end_check);
+	state = info -> end;
+	pthread_mutex_unlock(&philo -> info -> end_check);
+	if (!state)
 		printf("%lld %d %s\n", timestamp, id, msg);
 	pthread_mutex_unlock(&philo -> info -> printing);
 }
@@ -75,6 +79,6 @@ void	philo_usleep(t_philo *philo, int flag)
 		timestamp_ing = current_time();
 		if ((timestamp_ing - timestamp) >= time_it_take)
 			break ;
-		usleep(10);
+		usleep(5);
 	}
 }
