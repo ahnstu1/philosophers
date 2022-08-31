@@ -27,9 +27,7 @@ int	must_check(t_philo *philo)
 		}
 		if (info -> ate == info -> philo)
 		{
-			pthread_mutex_lock(&philo -> info -> end_check);
 			info -> end = 1;
-			pthread_mutex_unlock(&philo -> info -> end_check);
 			return (1);
 		}
 		idx++;
@@ -44,21 +42,23 @@ int	end_check(t_philo *philo)
 	long long timestamp;
 
 	info = philo -> info;
-	if (must_check(philo))
-		return (1);
-	idx = 0;
-	while (idx < info -> philo)
+	while (!info -> end)
 	{
-		timestamp = current_time();
-		if ((timestamp - philo[idx].timestamp) >= info -> die)
-		{
-			philo_print(&philo[idx], "died");
-			pthread_mutex_lock(&philo -> info -> end_check);
-			info -> end = 1;
-			pthread_mutex_unlock(&philo -> info -> end_check);
+		if (philo -> info -> must > 0 && must_check(philo))
 			return (1);
+		idx = 0;
+		while (idx < info -> philo)
+		{
+			timestamp = current_time();
+			if ((timestamp - philo[idx].timestamp) >= (long long)info -> die)
+			{
+				printf("catch time %lld\n", timestamp - philo[idx].timestamp);
+				info -> end = 1;
+				philo_print(&philo[idx], "died", 1);
+				return (1);
+			}
+			idx++;
 		}
-		idx++;
 	}
 	return (0);
 }
@@ -66,67 +66,57 @@ int	end_check(t_philo *philo)
 void	philo_left(t_philo *philo)
 {
 	pthread_mutex_lock(philo -> left_hand);
-	if (philo -> left_state)
+	if (*philo -> left_state)
 	{
 		*philo -> left_state = 0;
 		pthread_mutex_unlock(philo -> left_hand);
+		philo_print(philo, "has taken a fork", 0);
 		philo -> left = 1;
-		philo_print(philo, "has taken a fork");
 	}
 	else
 		pthread_mutex_unlock(philo -> left_hand);
-}
-
-void	philo_right(t_philo *philo)
-{
-	pthread_mutex_lock(philo -> right_hand);
-	if (philo -> right_state)
-	{
-		*philo -> right_state = 0;
-		pthread_mutex_unlock(philo -> right_hand);
-		philo -> right = 1;
-		philo_print(philo, "has taken a fork");
-	}
-	else
-	{
-		pthread_mutex_lock(philo -> left_hand);
-		*philo -> left_state = 1;
-		pthread_mutex_unlock(philo -> left_hand);
-		pthread_mutex_unlock(philo -> right_hand);
-		philo -> left = 0;
-	}
 }
 
 void	philo_eating(t_philo *philo)
 {
-	if (philo -> left && philo -> right)
-	{
 		pthread_mutex_lock(philo -> left_hand);
 		pthread_mutex_lock(philo -> right_hand);
-		philo_print(philo, "is eating");
+		philo_print(philo, "is eating", 0);
 		philo -> timestamp = current_time();
 		philo -> count_eat++;
-		philo_usleep(philo, 1);
+		philo_usleep(philo, philo -> info -> eat);
 		*philo -> right_state = 1;
 		*philo -> left_state = 1;
 		pthread_mutex_unlock(philo -> left_hand);
 		pthread_mutex_unlock(philo -> right_hand);
 		philo -> right = 0;
 		philo -> left = 0;
-		philo_print(philo, "is sleeping");
-		philo_usleep(philo, 0);
-		philo_print(philo, "is thinking");
+		philo_print(philo, "is sleeping", 0);
+		philo_usleep(philo, philo -> info -> sleep);
+		usleep(200);
+		philo_print(philo, "is thinking", 0);
+}
+
+void	philo_right(t_philo *philo)
+{
+	pthread_mutex_lock(philo -> right_hand);
+	if (*philo -> right_state)
+	{
+		*philo -> right_state = 0;
+		pthread_mutex_unlock(philo -> right_hand);
+		philo_print(philo, "has taken a fork", 0);
+		philo -> right = 1;
+		philo_eating(philo);
 	}
+	else
+		pthread_mutex_unlock(philo -> right_hand);
 }
 
 int	philo_act(t_info *info, t_philo *philo)
 {
-	if (end_check(philo -> first_philo))
-		return (1);
 	philo_left(philo);
-	if (philo -> left)
+	if (info -> philo > 1 && philo -> left)
 		philo_right(philo);
-	philo_eating(philo);
 	return (0);
 }
 
@@ -140,16 +130,12 @@ void	*philo_rot(void	*philo)
 	info = tmp -> info;
 	if (tmp -> id % 2)
 		usleep(1000);
-	pthread_mutex_lock(&tmp -> info -> end_check);
-	state = tmp -> info -> end;
-	pthread_mutex_unlock(&tmp -> info -> end_check);
-	while (!state)
+	else
+		usleep(500);
+	while (!tmp -> info -> end)
 	{
 		if (philo_act(info, philo))
 			break ;
-		pthread_mutex_lock(&tmp -> info -> end_check);
-		state = tmp -> info -> end;
-		pthread_mutex_unlock(&tmp -> info -> end_check);
 	}
 	return (NULL);
 }
@@ -165,6 +151,7 @@ int	philo_main(t_info *info, t_philo *philo)
 			return (1);
 		idx++;
 	}
+	end_check(philo -> first_philo);
 	philo_free(philo, idx);
 	return (0);
 }

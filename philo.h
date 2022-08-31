@@ -31,7 +31,6 @@ typedef struct s_info
 	int			*fork_state;
 	long long	timestamp;
 	pthread_mutex_t	printing;
-	pthread_mutex_t	end_check;
 	pthread_mutex_t	*share;
 }	t_info;
 
@@ -60,8 +59,8 @@ int			philo_main(t_info *info, t_philo *philo);
 void		philo_free(t_philo *philo, int count);
 void		*philo_rot(void	*philo);
 int			philo_act(t_info *info, t_philo *philo);
-void		philo_print(t_philo *philo, char *msg);
-void		philo_usleep(t_philo *philo, int flag);
+void		philo_print(t_philo *philo, char *msg, int flag);
+void		philo_usleep(t_philo *philo, int time_it_take);
 long long	current_time(void);
 int			ft_atoi(const char *str);
 void		err_msg(void);

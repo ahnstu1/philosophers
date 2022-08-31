@@ -44,41 +44,32 @@ void	err_msg(void)
 	printf("Error\n");
 }
 
-void	philo_print(t_philo *philo, char *msg)
+void	philo_print(t_philo *philo, char *msg, int flag)
 {
 	t_info		*info;
 	int			id;
-	int			state;
 	long long	timestamp;
 
 	info = philo -> info;
 	id = philo -> id + 1;
 	pthread_mutex_lock(&philo -> info -> printing);
 	timestamp = current_time() - info -> timestamp;
-	pthread_mutex_lock(&philo -> info -> end_check);
-	state = info -> end;
-	pthread_mutex_unlock(&philo -> info -> end_check);
-	if (!state)
+	if (!info -> end || flag)
 		printf("%lld %d %s\n", timestamp, id, msg);
 	pthread_mutex_unlock(&philo -> info -> printing);
 }
 
-void	philo_usleep(t_philo *philo, int flag)
+void	philo_usleep(t_philo *philo, int time_it_take)
 {
 	long long	timestamp;
 	long long	timestamp_ing;
-	long long	time_it_take;
 
 	timestamp = current_time();
-	if (flag)
-		time_it_take = (long long)(philo -> info -> eat);
-	else
-		time_it_take = (long long)(philo -> info -> sleep);
 	while (!philo -> info -> end)
 	{
 		timestamp_ing = current_time();
 		if ((timestamp_ing - timestamp) >= time_it_take)
 			break ;
-		usleep(5);
+		usleep(10);
 	}
 }

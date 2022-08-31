@@ -19,12 +19,13 @@ int	mutex_init(t_info *info)
 	idx = 0;
 
 	info -> share = malloc(sizeof(pthread_mutex_t) * info -> philo);
-	if (!info -> share || pthread_mutex_init(&info -> printing, NULL)
-	|| pthread_mutex_init(&info -> end_check, NULL))
+	if (!info -> share || pthread_mutex_init(&info -> printing, NULL))
 		return (1);
 	while (idx < info -> philo)
-		if (pthread_mutex_init(&info -> share[idx++], NULL))
+	{
+		if (pthread_mutex_init(&(info -> share[idx++]), NULL))
 			return (1);
+	}
 	return (0);
 }
 
@@ -68,7 +69,7 @@ int	philo_init(t_info *info, t_philo **philo)
 		(*philo)[idx].right = 0;
 		(*philo)[idx].left_state = &info -> fork_state[idx];
 		(*philo)[idx].right_state = &(info -> fork_state[(idx + 1) % info -> philo]);
-		(*philo)[idx].left_hand = &info -> share[idx];
+		(*philo)[idx].left_hand = &(info -> share[idx]);
 		(*philo)[idx].right_hand = &(info -> share[(idx + 1) % info -> philo]);
 		(*philo)[idx].count_eat = 0;
 		(*philo)[idx].must_flag = 0;
@@ -76,7 +77,6 @@ int	philo_init(t_info *info, t_philo **philo)
 		(*philo)[idx].timestamp = info -> timestamp;
 		(*philo)[idx].first_philo = &(*philo)[0];
 		idx++;
-
 	}
 	return (0);
 }
