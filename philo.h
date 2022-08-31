@@ -29,7 +29,6 @@ typedef struct s_info
 	int			end;
 	int			*fork_state;
 	long long	timestamp;
-	pthread_mutex_t *fork;
 	pthread_mutex_t	printing;
 	pthread_mutex_t	eating;
 	pthread_mutex_t	die_check;
@@ -43,9 +42,12 @@ typedef struct s_philo
 	int				must_flag;
 	int				*left_state;
 	int				*right_state;
+	int				left;
+	int				right;
 	pthread_t		tid;
-	pthread_mutex_t	*left;
-	pthread_mutex_t	*right;
+	pthread_mutex_t	left_hand;
+	pthread_mutex_t	right_hand;
+	struct s_philo	*first_philo;
 	struct s_info	*info;
 }	t_philo;
 

@@ -22,7 +22,11 @@ void	philo_free(t_philo *philo, int count)
 	pthread_mutex_destroy(&philo -> info -> printing);
 	pthread_mutex_destroy(&philo -> info -> eating);
 	while (idx < philo -> count_eat)
-		pthread_mutex_destroy(&philo -> info -> fork[idx++]);
+	{
+		pthread_mutex_destroy(&philo[idx].left_hand);
+		pthread_mutex_destroy(&philo[idx].right_hand);
+		idx++;
+	}
 	idx = 0;
 	while (idx < count)
 		pthread_join(philo[idx++].tid, NULL);

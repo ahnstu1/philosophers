@@ -12,55 +12,108 @@
 
 #include "philo.h"
 
-void	philo_die(t_info *info, t_philo *philo)
-{
-	int			idx;
-	long long	timestamp;
-
-	while (!info -> end)
-	{
-		idx = 0;
-		while (idx < info -> philo)
-		{
-			timestamp = current_time();
-			if ((timestamp - philo[idx].timestamp) >= info -> die)
-			{
-				philo_print(&philo[idx], "died");
-				info -> end = 1;
-				break ;
-			}
-			idx++;
-		}
-	}
-}
 void	philo_left(t_philo *philo)
 {
-	pthread_mutex_lock(philo -> left);
-	*philo -> left_state = 1;
-	philo_print(philo, "has taken a fork");
-	if (!philo -> right_state)
+	pthread_mutex_lock(&philo -> left_hand);
+	if (philo -> left_state)
 	{
-		pthread_mutex_lock(philo -> right);
-		*philo -> right_state = 1;
+		*philo -> left_state = 0;
+		pthread_mutex_unlock(&philo -> left_hand);
+		philo -> left = 1;
 		philo_print(philo, "has taken a fork");
+	}
+	else
+		pthread_mutex_unlock(&philo -> left_hand);
+}
+
+void	philo_right(t_philo *philo)
+{
+	pthread_mutex_lock(&philo -> right_hand);
+	if (philo -> right_state)
+	{
+		*philo -> right_state = 0;
+		pthread_mutex_unlock(&philo -> right_hand);
+		philo -> right = 1;
+		philo_print(philo, "has taken a fork");
+	}
+	else
+	{
+		pthread_mutex_lock(&philo -> left_hand);
+		*philo -> left_state = 1;
+		pthread_mutex_unlock(&philo -> left_hand);
+		philo -> left = 0;
+		pthread_mutex_unlock(&philo -> right_hand);
+	}
+}
+
+void	philo_eating(t_philo *philo)
+{
+	if (philo -> left && philo -> right)
+	{
+		pthread_mutex_lock(&philo -> left_hand);
+		pthread_mutex_lock(&philo -> right_hand);
+		philo_print(philo, "is eating");
 		philo -> timestamp = current_time();
 		philo -> count_eat++;
-		philo_print(philo, "is eating");
 		philo_usleep(philo, 1);
-		*philo -> right_state = 0;
-		pthread_mutex_unlock(philo -> right);
+		philo -> right = 0;
+		philo -> left = 0;
+		pthread_mutex_unlock(&philo -> left_hand);
+		pthread_mutex_unlock(&philo -> right_hand);
+		*philo -> right_state = 1;
+		*philo -> left_state = 1;
+		philo_print(philo, "is sleeping");
+		philo_usleep(philo, 0);
+		philo_print(philo, "is thinking");
 	}
-	*philo -> left_state = 0;
-	pthread_mutex_unlock(philo -> left);
+}
+
+int	end_check(t_philo *philo)
+{
+	int		idx;
+	t_info	*info;
+	long long timestamp;
+	pthread_mutex_lock(&philo -> info -> die_check);
+	info = philo -> info;
+	idx = 0;
+	while (idx < info -> philo)
+	{
+		if (philo[idx].must_flag == 0 && philo[idx].count_eat == info -> must)
+		{
+			philo[idx].must_flag = 1;
+			info -> ate++;
+		}
+		if (info -> ate == info -> philo)
+		{
+			info -> end = 1;
+			return (1);
+		}
+		idx++;
+	}
+	idx = 0;
+	while (idx < info -> philo)
+	{
+		timestamp = current_time();
+		if ((timestamp - philo[idx].timestamp) >= info -> die)
+		{
+			philo_print(&philo[idx], "died");
+			info -> end = 1;
+			return (1);
+		}
+		idx++;
+	}
+	pthread_mutex_unlock(&philo -> info -> die_check);
+	return (0);
 }
 
 int	philo_act(t_info *info, t_philo *philo)
 {
+	if (end_check(philo -> first_philo))
+		return (1);
 	philo_left(philo);
-	//philo_right(info, philo);
-	philo_print(philo, "is sleeping");
-	philo_usleep(philo, 0);
-	philo_print(philo, "is thinking");
+	if (philo -> left)
+		philo_right(philo);
+	philo_eating(philo);
 	return (0);
 }
 
@@ -81,72 +134,17 @@ void	*philo_rot(void	*philo)
 	return (NULL);
 }
 
-void	*monitor_rot(void	*philo)
-{
-	int		idx;
-	t_philo	*tmp;
-	t_info	*info;
-
-	tmp = philo;
-	info = tmp -> info;
-	while (1)
-	{
-		idx = 0;
-		while (idx < info -> philo)
-		{
-			if (tmp[idx].must_flag == 0 && tmp[idx].count_eat == info -> must)
-			{
-				tmp[idx].must_flag = 1;
-				info -> ate++;
-			}
-			if (info -> ate == info -> philo)
-			{
-				info -> end = 1;
-				return (NULL);
-			}
-			idx++;
-		}
-		idx = 0;
-		while (idx < info -> philo)
-		{
-			if ((current_time() - tmp[idx].timestamp) >= info -> die)
-			{
-				philo_print(&philo[idx], "died");
-				info -> end = 1;
-				return (NULL);
-			}
-			idx++;
-		}
-	}
-	return (NULL);
-}
-
-void	philo_must(t_info *info, t_philo *philo)
-{
-	if (info -> must && !info -> end)
-	{
-		if (info -> must == philo -> count_eat)
-			info -> ate++;
-		if (info -> philo == info -> ate)
-			info -> end = 1;
-	}
-}
 int	philo_main(t_info *info, t_philo *philo)
 {
-	pthread_t	monitor;
 	int			idx;
 
 	idx = 0;
-
 	while (idx < info -> philo)
 	{
 		if (pthread_create(&(philo[idx].tid), NULL, philo_rot, &(philo[idx])))
 			return (1);
 		idx++;
 	}
-	if (pthread_create(&monitor, NULL, monitor_rot, philo))
-		return (1);
-	pthread_join(monitor, NULL);
 	philo_free(philo, idx);
 	return (0);
 }
