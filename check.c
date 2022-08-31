@@ -6,7 +6,7 @@
 /*   By: hahn <hahn@student.42seoul.kr>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/01 07:28:18 by hahn              #+#    #+#             */
-/*   Updated: 2022/09/01 07:33:10 by hahn             ###   ########.fr       */
+/*   Updated: 2022/09/01 07:36:52 by hahn             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,6 @@ int	end_check(t_philo *philo)
 			timestamp = current_time();
 			if ((timestamp - philo[idx].timestamp) >= (long long)info -> die)
 			{
-				printf("catch time %lld\n", timestamp - philo[idx].timestamp);
 				info -> end = 1;
 				philo_print(&philo[idx], "died", 1);
 				return (1);
