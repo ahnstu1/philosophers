@@ -23,7 +23,7 @@ void	philo_free(t_philo *philo, int count)
 		pthread_join(philo[idx++].tid, NULL);
 	pthread_mutex_destroy(&philo -> info -> printing);
 	pthread_mutex_destroy(info -> share);
-	free(info -> fork_state);
+	free(info -> fs);
 	free(philo);
 }
 

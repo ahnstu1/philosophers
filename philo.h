@@ -21,15 +21,15 @@
 
 typedef struct s_info
 {
-	int			philo;
-	int			die;
-	int			eat;
-	int			sleep;
-	int			must;
-	int			ate;
-	int			end;
-	int			*fork_state;
-	long long	timestamp;
+	int				philo;
+	int				die;
+	int				eat;
+	int				sleep;
+	int				must;
+	int				ate;
+	int				end;
+	int				*fs;
+	long long		timestamp;
 	pthread_mutex_t	printing;
 	pthread_mutex_t	*share;
 }	t_info;
@@ -52,7 +52,7 @@ typedef struct s_philo
 }	t_philo;
 
 int			info_init(char **argv, t_info *info);
-int	end_check(t_philo *philo);
+int			end_check(t_philo *philo);
 int			mutex_init(t_info *info);
 int			philo_init(t_info *info, t_philo **philo);
 int			philo_main(t_info *info, t_philo *philo);
