@@ -15,16 +15,14 @@
 void	philo_free(t_philo *philo, int count)
 {
 	int		idx;
-	t_mutex	*mutex;
 	t_info	*info;
 
 	idx = 0;
-	mutex = philo[0].mutex;
 	info = philo[0].info;
-	pthread_mutex_destroy(&mutex -> printing);
-	pthread_mutex_destroy(&mutex -> eating);
-	while (idx < info -> philo)
-		pthread_mutex_destroy(&(mutex -> fork[idx++]));
+	pthread_mutex_destroy(&philo -> info -> printing);
+	pthread_mutex_destroy(&philo -> info -> eating);
+	while (idx < philo -> count_eat)
+		pthread_mutex_destroy(&philo -> info -> fork[idx++]);
 	idx = 0;
 	while (idx < count)
 		pthread_join(philo[idx++].tid, NULL);
@@ -34,11 +32,10 @@ void	philo_free(t_philo *philo, int count)
 int	main(int argc, char **argv)
 {
 	t_info		info;
-	t_mutex		mutex;
 	t_philo		*philo;
 
 	if (!(argc == 5 || argc == 6) || info_init(argv, &info)
-		||mutex_init(&info, &mutex) || philo_init(&info, &philo, &mutex)
-		|| philo_main (&info, philo, &mutex))
+		|| philo_init(&info, &philo)
+		|| philo_main (&info, philo))
 		err_msg();
 }

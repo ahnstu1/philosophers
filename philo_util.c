@@ -46,19 +46,17 @@ void	err_msg(void)
 
 void	philo_print(t_philo *philo, char *msg)
 {
-	t_mutex		*mutex;
 	t_info		*info;
 	int			id;
 	long long	timestamp;
 
-	mutex = philo -> mutex;
 	info = philo -> info;
 	id = philo -> id + 1;
-	pthread_mutex_lock(&mutex -> printing);
+	pthread_mutex_lock(&philo -> info -> printing);
 	timestamp = current_time() - info -> timestamp;
 	if (!info -> end)
 		printf("%lld %d %s\n", timestamp, id, msg);
-	pthread_mutex_unlock(&mutex -> printing);
+	pthread_mutex_unlock(&philo -> info -> printing);
 }
 
 void	philo_usleep(t_philo *philo, int flag)

@@ -14,6 +14,9 @@
 
 int	info_init(char **argv, t_info *info)
 {
+	int	idx;
+
+	idx = 0;
 	if (!info)
 		return (1);
 	info -> philo = ft_atoi(argv[1]);
@@ -24,31 +27,28 @@ int	info_init(char **argv, t_info *info)
 	if (argv[5] != NULL)
 		info -> must = ft_atoi(argv[5]);
 	else
-		info -> must = 0;
+		info -> must = -1;
 	info -> ate = 0;
 	info -> end = 0;
-	if (info -> philo == -1 || info -> die == -1 || info -> eat == -1 \
-		|| info -> sleep == -1 || (argv[5] != NULL && info -> must < 1))
-		return (1);
-	return (0);
-}
-
-int	mutex_init(t_info *info, t_mutex *mutex)
-{
-	int	idx;
-
-	idx = 0;
-	mutex -> fork = malloc(sizeof(pthread_mutex_t) * info -> philo);
-	if (!mutex -> fork || pthread_mutex_init(&mutex -> eating, NULL)
-		|| (pthread_mutex_init(&mutex -> printing, NULL)))
+	info -> fork_state = malloc(sizeof(int) * info -> philo);
+	info -> fork = malloc(sizeof(pthread_mutex_t) * info -> philo);
+	if (!info -> fork || info -> philo == -1 || info -> die == -1
+		|| !info -> fork_state || info -> eat == -1 || info -> sleep == -1
+		|| (argv[5] != NULL && info -> must < 1) 
+		|| pthread_mutex_init(&info -> printing, NULL)
+		|| pthread_mutex_init(&info -> eating, NULL)
+		|| pthread_mutex_init(&info -> die_check, NULL))
 		return (1);
 	while (idx < info -> philo)
-		if (pthread_mutex_init(&(mutex -> fork[idx++]), NULL))
+		info -> fork_state[idx++] = 0;
+	idx = 0;
+	while (idx < info -> philo)
+		if (pthread_mutex_init(&info -> fork[idx++], NULL))
 			return (1);
 	return (0);
 }
 
-int	philo_init(t_info *info, t_philo **philo, t_mutex *mutex)
+int	philo_init(t_info *info, t_philo **philo)
 {
 	int	idx;
 
@@ -59,12 +59,15 @@ int	philo_init(t_info *info, t_philo **philo, t_mutex *mutex)
 	while (idx < info -> philo)
 	{
 		(*philo)[idx].id = idx;
-		(*philo)[idx].left = idx;
-		(*philo)[idx].right = (idx + 1) % info -> philo;
+		(*philo)[idx].left = &(info -> fork[idx]);
+		(*philo)[idx].right = &(info -> fork[(idx + 1) % info -> philo]);
+		(*philo)[idx].left_state = &info -> fork_state[idx];
+		(*philo)[idx].right_state = &(info -> fork_state[(idx + 1) % info -> philo]);
 		(*philo)[idx].count_eat = 0;
+		(*philo)[idx].must_flag = 0;
 		(*philo)[idx].info = info;
-		(*philo)[idx].mutex = mutex;
 		idx++;
+
 	}
 	return (0);
 }

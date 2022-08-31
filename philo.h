@@ -27,31 +27,32 @@ typedef struct s_info
 	int			must;
 	int			ate;
 	int			end;
+	int			*fork_state;
 	long long	timestamp;
+	pthread_mutex_t *fork;
+	pthread_mutex_t	printing;
+	pthread_mutex_t	eating;
+	pthread_mutex_t	die_check;
 }	t_info;
 
 typedef struct s_philo
 {
 	int				id;
-	int				left;
-	int				right;
 	long long		timestamp;
 	int				count_eat;
+	int				must_flag;
+	int				*left_state;
+	int				*right_state;
 	pthread_t		tid;
+	pthread_mutex_t	*left;
+	pthread_mutex_t	*right;
 	struct s_info	*info;
-	struct s_mutex	*mutex;
 }	t_philo;
 
-typedef struct s_mutex {
-	pthread_mutex_t	*fork;
-	pthread_mutex_t	printing;
-	pthread_mutex_t	eating;
-}	t_mutex;
-
 int			info_init(char **argv, t_info *info);
-int			mutex_init(t_info *info, t_mutex *mutex);
-int			philo_init(t_info *info, t_philo **philo, t_mutex *mutex);
-int			philo_main(t_info *info, t_philo *philo, t_mutex *mutex);
+int			mutex_init(t_info *info);
+int			philo_init(t_info *info, t_philo **philo);
+int			philo_main(t_info *info, t_philo *philo);
 void		philo_free(t_philo *philo, int count);
 void		*philo_rot(void	*philo);
 int			philo_act(t_info *info, t_philo *philo);
